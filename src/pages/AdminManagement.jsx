@@ -3,6 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Database, Users, Settings, Shield, Activity } from "lucide-react";
 import DataSourceManager from "@/components/admin/DataSourceManager";
+import UserRolesSection from "@/components/admin/UserRolesSection";
 import { usePermissions } from "@/components/auth/PermissionsContext";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
