@@ -13,6 +13,7 @@ import SalesForecast from "./SalesForecast";
 import RegionalHeatmap from "@/components/charts/RegionalHeatmap";
 import PerformanceMatrix from "@/components/charts/PerformanceMatrix";
 import InteractiveTrendChart from "@/components/charts/InteractiveTrendChart";
+import AISummaryCard from "@/components/common/AISummaryCard";
 
 const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899"];
 
@@ -159,8 +160,32 @@ Provide 3-4 specific, actionable recommendations to improve sales performance. B
     setLoadingAI(false);
   };
 
+  // Build AI prompt
+  const aiPrompt = `Analyze this sales data and provide a concise executive summary:
+
+Total Revenue: SAR ${totalRevenue.toLocaleString()}
+Total Orders: ${totalOrders}
+Average Order Value: SAR ${avgOrderValue.toFixed(0)}
+Conversion Rate: ${conversionRate.toFixed(1)}%
+Month-over-Month Growth: ${growthRate.toFixed(1)}%
+Open Orders: ${openOrders}
+Cancelled Orders: ${cancelledOrders}
+Overdue Invoices: ${overdueInvoices.length}
+Outstanding Receivables: SAR ${totalReceivables.toLocaleString()}
+
+Top Customers: ${customerData.slice(0, 3).map(c => c.name).join(", ")}
+Top Regions: ${regionData.slice(0, 3).map(r => r.region).join(", ")}
+
+Provide: 1) A one-line headline, 2) 3-4 key metrics with trends, 3) Top 2-3 trends, 4) Any anomalies, 5) 2-3 recommendations. Be concise.`;
+
   return (
     <div className="space-y-6">
+      {/* AI Summary */}
+      <AISummaryCard 
+        title="Sales Performance Summary"
+        promptTemplate={aiPrompt}
+      />
+
       {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
