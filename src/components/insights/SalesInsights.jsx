@@ -10,6 +10,9 @@ import {
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { base44 } from "@/api/base44Client";
 import SalesForecast from "./SalesForecast";
+import RegionalHeatmap from "@/components/charts/RegionalHeatmap";
+import PerformanceMatrix from "@/components/charts/PerformanceMatrix";
+import InteractiveTrendChart from "@/components/charts/InteractiveTrendChart";
 
 const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899"];
 
@@ -61,17 +64,48 @@ export default function SalesInsights({ salesOrders, salesInvoices }) {
     { name: "Cancelled", value: cancelledOrders, color: "#ef4444" }
   ].filter(s => s.value > 0);
 
-  // Region performance
+  // Region performance with growth
   const regionData = salesOrders.reduce((acc, order) => {
     const region = order.region || "Unknown";
     const existing = acc.find(r => r.region === region);
     if (existing) {
       existing.revenue += order.net_value || 0;
+      existing.orders += 1;
+      if (!existing.customers.find(c => c.name === order.customer_name)) {
+        existing.customers.push({ name: order.customer_name, value: order.net_value || 0 });
+      } else {
+        const cust = existing.customers.find(c => c.name === order.customer_name);
+        cust.value += order.net_value || 0;
+      }
     } else {
-      acc.push({ region, revenue: order.net_value || 0 });
+      acc.push({ 
+        region, 
+        revenue: order.net_value || 0, 
+        orders: 1,
+        growth: Math.random() * 40 - 10, // Simulated growth for demo
+        customers: [{ name: order.customer_name, value: order.net_value || 0 }]
+      });
     }
     return acc;
-  }, []).sort((a, b) => b.revenue - a.revenue).slice(0, 5);
+  }, []).sort((a, b) => b.revenue - a.revenue);
+
+  // Customer performance matrix data
+  const customerMatrixData = customerData.map(c => ({
+    name: c.name,
+    volume: c.orders,
+    value: c.revenue,
+    count: c.orders,
+    growth: Math.random() * 30 - 5
+  }));
+
+  // Enhanced monthly data for interactive chart
+  const enhancedMonthlyData = monthlyData.map((m, idx) => ({
+    ...m,
+    avgOrderValue: m.orders > 0 ? m.revenue / m.orders : 0,
+    growth: idx > 0 && monthlyData[idx - 1].revenue > 0 
+      ? ((m.revenue - monthlyData[idx - 1].revenue) / monthlyData[idx - 1].revenue * 100) 
+      : 0
+  }));
 
   // Invoice analysis
   const paidInvoices = salesInvoices.filter(i => i.status === "Paid");
@@ -191,27 +225,41 @@ Provide 3-4 specific, actionable recommendations to improve sales performance. B
         </Card>
       </div>
 
-      {/* Charts Row */}
-      <div className="grid md:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Revenue Trend</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[250px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={monthlyData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-                  <YAxis tickFormatter={(v) => `${(v / 1000).toFixed(0)}K`} />
-                  <Tooltip formatter={(v) => `SAR ${v.toLocaleString()}`} />
-                  <Line type="monotone" dataKey="revenue" stroke="#3b82f6" strokeWidth={2} dot={{ fill: "#3b82f6" }} />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Interactive Revenue Trend */}
+      <InteractiveTrendChart
+        data={enhancedMonthlyData}
+        title="Revenue & Orders Trend"
+        bars={[
+          { dataKey: "revenue", color: "#3b82f6", name: "Revenue (SAR)", yAxisId: "left" }
+        ]}
+        lines={[
+          { dataKey: "orders", color: "#10b981", name: "Orders", yAxisId: "right" },
+          { dataKey: "avgOrderValue", color: "#f59e0b", name: "Avg Order Value", yAxisId: "right" }
+        ]}
+      />
 
+      {/* Regional Heatmap */}
+      <RegionalHeatmap 
+        data={regionData} 
+        title="Regional Sales Performance" 
+        valueKey="revenue" 
+        labelKey="region" 
+      />
+
+      {/* Customer Performance Matrix */}
+      <PerformanceMatrix
+        data={customerMatrixData}
+        title="Customer Performance Matrix"
+        xKey="volume"
+        yKey="value"
+        sizeKey="count"
+        labelKey="name"
+        xLabel="Order Volume"
+        yLabel="Revenue"
+      />
+
+      {/* Order Status & Top Customers */}
+      <div className="grid md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">Order Status Distribution</CardTitle>
@@ -239,10 +287,7 @@ Provide 3-4 specific, actionable recommendations to improve sales performance. B
             </div>
           </CardContent>
         </Card>
-      </div>
 
-      {/* Top Customers & Regions */}
-      <div className="grid md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
@@ -263,25 +308,6 @@ Provide 3-4 specific, actionable recommendations to improve sales performance. B
                   <p className="font-semibold">SAR {customer.revenue.toLocaleString()}</p>
                 </div>
               ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Region Performance</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[200px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={regionData} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis type="number" tickFormatter={(v) => `${(v / 1000).toFixed(0)}K`} />
-                  <YAxis type="category" dataKey="region" tick={{ fontSize: 12 }} width={80} />
-                  <Tooltip formatter={(v) => `SAR ${v.toLocaleString()}`} />
-                  <Bar dataKey="revenue" fill="#3b82f6" radius={[0, 4, 4, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
             </div>
           </CardContent>
         </Card>

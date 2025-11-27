@@ -3,6 +3,9 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Truck, Users, Package, AlertTriangle, CheckCircle, Clock, TrendingUp } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
+import SupplierNetwork from "@/components/charts/SupplierNetwork";
+import DrillDownPieChart from "@/components/charts/DrillDownPieChart";
+import InteractiveTrendChart from "@/components/charts/InteractiveTrendChart";
 
 const COLORS = ["#10b981", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6"];
 
@@ -41,6 +44,40 @@ export default function SupplyChainOverview({ shipments, suppliers, purchaseOrde
     { name: "Pending", value: pending, color: "#f59e0b" },
     { name: "Delayed", value: delayed, color: "#ef4444" }
   ].filter(s => s.value > 0);
+
+  // Shipment trend by month
+  const shipmentTrend = shipments.reduce((acc, s) => {
+    const month = s.ship_date?.substring(0, 7) || "Unknown";
+    const existing = acc.find(m => m.month === month);
+    if (existing) {
+      existing.shipments += 1;
+      existing.freight += s.freight_cost || 0;
+      if (s.status === "Delivered") existing.delivered += 1;
+    } else {
+      acc.push({ 
+        month, 
+        shipments: 1, 
+        freight: s.freight_cost || 0,
+        delivered: s.status === "Delivered" ? 1 : 0
+      });
+    }
+    return acc;
+  }, []).sort((a, b) => a.month.localeCompare(b.month)).slice(-6).map(m => ({
+    ...m,
+    onTimeRate: m.shipments > 0 ? (m.delivered / m.shipments * 100) : 0
+  }));
+
+  // Carrier distribution for drill-down
+  const carrierData = shipments.reduce((acc, s) => {
+    const carrier = s.carrier || "Unknown";
+    const existing = acc.find(c => c.name === carrier);
+    if (existing) {
+      existing.value += s.freight_cost || 0;
+    } else {
+      acc.push({ name: carrier, value: s.freight_cost || 0 });
+    }
+    return acc;
+  }, []).sort((a, b) => b.value - a.value);
 
   return (
     <div className="space-y-6">
@@ -99,35 +136,28 @@ export default function SupplyChainOverview({ shipments, suppliers, purchaseOrde
         </Card>
       </div>
 
+      {/* Shipment Trend Chart */}
+      <InteractiveTrendChart
+        data={shipmentTrend}
+        title="Shipment & Freight Trend"
+        bars={[
+          { dataKey: "shipments", color: "#3b82f6", name: "Shipments", yAxisId: "left" }
+        ]}
+        lines={[
+          { dataKey: "freight", color: "#10b981", name: "Freight Cost (SAR)", yAxisId: "right" },
+          { dataKey: "onTimeRate", color: "#f59e0b", name: "On-Time %", yAxisId: "right" }
+        ]}
+      />
+
       <div className="grid md:grid-cols-2 gap-6">
-        {/* Shipment Status */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Shipment Status</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[200px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={shipmentStatusData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={50}
-                    outerRadius={80}
-                    dataKey="value"
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  >
-                    {shipmentStatusData.map((entry, index) => (
-                      <Cell key={index} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Carrier Distribution */}
+        <DrillDownPieChart
+          data={carrierData}
+          title="Freight Cost by Carrier"
+          valueKey="value"
+          nameKey="name"
+          formatValue={(v) => `SAR ${v.toLocaleString()}`}
+        />
 
         {/* Alerts */}
         <Card>
@@ -177,6 +207,9 @@ export default function SupplyChainOverview({ shipments, suppliers, purchaseOrde
           </CardContent>
         </Card>
       </div>
+
+      {/* Supplier Network */}
+      <SupplierNetwork suppliers={suppliers} purchaseOrders={purchaseOrders} />
 
       {/* Recent Shipments */}
       <Card>
