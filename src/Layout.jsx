@@ -7,6 +7,7 @@ const navItems = [
   { name: "Dashboard", icon: LayoutDashboard, page: "Dashboard" },
   { name: "Sales", icon: ShoppingCart, page: "Sales" },
   { name: "Inventory", icon: Package, page: "Inventory" },
+  { name: "Finance", icon: DollarSign, page: "Finance" },
 ];
 
 export default function Layout({ children }) {
