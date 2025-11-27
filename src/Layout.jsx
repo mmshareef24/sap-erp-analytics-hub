@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { createPageUrl } from "./utils";
 import { LayoutDashboard, ShoppingCart, Package, FileText, Warehouse, DollarSign, Factory, Settings } from "lucide-react";
+import GlobalSearch from "@/components/layout/GlobalSearch";
 
 const navItems = [
   { name: "Dashboard", icon: LayoutDashboard, page: "Dashboard" },
@@ -33,6 +34,9 @@ export default function Layout({ children }) {
                   </Link>
                 ))}
               </div>
+            </div>
+            <div className="flex items-center">
+              <GlobalSearch />
             </div>
           </div>
         </div>
