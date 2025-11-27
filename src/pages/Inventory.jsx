@@ -2,21 +2,29 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Warehouse, BarChart3, RefreshCw, DollarSign, AlertTriangle, Loader2, Package } from "lucide-react";
+import { Warehouse, BarChart3, RefreshCw, DollarSign, AlertTriangle, Loader2, Package, Settings } from "lucide-react";
 import KPICard from "@/components/dashboard/KPICard";
 import DataTable from "@/components/dashboard/DataTable";
 import InventoryValuationTrend from "@/components/inventory/InventoryValuationTrend";
 import StockTurnoverRate from "@/components/inventory/StockTurnoverRate";
 import TopValueItems from "@/components/inventory/TopValueItems";
 import LowStockAlerts from "@/components/inventory/LowStockAlerts";
+import InventoryOptimizationReport from "@/components/inventory/InventoryOptimizationReport";
 
 export default function Inventory() {
   const [activeTab, setActiveTab] = useState("overview");
 
-  const { data: inventory = [], isLoading } = useQuery({
+  const { data: inventory = [], isLoading: l1 } = useQuery({
     queryKey: ["inventory"],
     queryFn: () => base44.entities.Inventory.list()
   });
+
+  const { data: salesOrders = [], isLoading: l2 } = useQuery({
+    queryKey: ["inventory-sales"],
+    queryFn: () => base44.entities.SalesOrder.list()
+  });
+
+  const isLoading = l1 || l2;
 
   if (isLoading) {
     return (
@@ -71,7 +79,7 @@ export default function Inventory() {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="grid grid-cols-2 lg:grid-cols-5 gap-2 h-auto p-1">
+          <TabsList className="grid grid-cols-2 lg:grid-cols-6 gap-2 h-auto p-1">
             <TabsTrigger value="overview" className="gap-2 py-2">
               <Warehouse className="h-4 w-4" />
               <span className="hidden sm:inline">Overview</span>
@@ -91,6 +99,10 @@ export default function Inventory() {
             <TabsTrigger value="alerts" className="gap-2 py-2">
               <AlertTriangle className="h-4 w-4" />
               <span className="hidden sm:inline">Stock Alerts</span>
+            </TabsTrigger>
+            <TabsTrigger value="optimization" className="gap-2 py-2">
+              <Settings className="h-4 w-4" />
+              <span className="hidden sm:inline">Optimization</span>
             </TabsTrigger>
           </TabsList>
 
@@ -128,6 +140,10 @@ export default function Inventory() {
 
           <TabsContent value="alerts">
             <LowStockAlerts inventory={inventory} />
+          </TabsContent>
+
+          <TabsContent value="optimization">
+            <InventoryOptimizationReport inventory={inventory} salesOrders={salesOrders} />
           </TabsContent>
         </Tabs>
       </div>
