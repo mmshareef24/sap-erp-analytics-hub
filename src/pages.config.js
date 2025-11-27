@@ -7,6 +7,7 @@ import Production from './pages/Production';
 import Insights from './pages/Insights';
 import Reports from './pages/Reports';
 import SupplyChain from './pages/SupplyChain';
+import CrossModuleAnalytics from './pages/CrossModuleAnalytics';
 import __Layout from './Layout.jsx';
 
 
@@ -20,6 +21,7 @@ export const PAGES = {
     "Insights": Insights,
     "Reports": Reports,
     "SupplyChain": SupplyChain,
+    "CrossModuleAnalytics": CrossModuleAnalytics,
 }
 
 export const pagesConfig = {
