@@ -5,6 +5,7 @@ import Finance from './pages/Finance';
 import Purchase from './pages/Purchase';
 import Production from './pages/Production';
 import Insights from './pages/Insights';
+import Reports from './pages/Reports';
 import __Layout from './Layout.jsx';
 
 
@@ -16,6 +17,7 @@ export const PAGES = {
     "Purchase": Purchase,
     "Production": Production,
     "Insights": Insights,
+    "Reports": Reports,
 }
 
 export const pagesConfig = {
