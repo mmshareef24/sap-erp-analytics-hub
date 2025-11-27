@@ -9,6 +9,7 @@ import StatusPieChart from "@/components/dashboard/StatusPieChart";
 import DataTable from "@/components/dashboard/DataTable";
 import InventoryAlerts from "@/components/dashboard/InventoryAlerts";
 import SyncStatus from "@/components/dashboard/SyncStatus";
+import CrossModuleAlerts from "@/components/dashboard/CrossModuleAlerts";
 
 export default function Dashboard() {
   const queryClient = useQueryClient();
@@ -79,7 +80,12 @@ export default function Dashboard() {
     queryFn: () => base44.entities.ProductionOrder.list()
   });
 
-  const isLoading = loadingSales || loadingPO || loadingInvoices || loadingInventory || loadingFinance || loadingProduction;
+  const { data: shipments = [], isLoading: loadingShipments } = useQuery({
+    queryKey: ["shipments"],
+    queryFn: () => base44.entities.Shipment.list()
+  });
+
+  const isLoading = loadingSales || loadingPO || loadingInvoices || loadingInventory || loadingFinance || loadingProduction || loadingShipments;
 
   // Calculate KPIs
   const totalSalesValue = salesOrders.reduce((sum, o) => sum + (o.net_value || 0), 0);
@@ -114,6 +120,16 @@ export default function Dashboard() {
             onIntervalChange={handleIntervalChange}
           />
         </div>
+
+        {/* Cross-Module Alerts */}
+        <CrossModuleAlerts 
+          salesOrders={salesOrders}
+          purchaseOrders={purchaseOrders}
+          inventory={inventory}
+          shipments={shipments}
+          vendorInvoices={vendorInvoices}
+          productionOrders={productionOrders}
+        />
 
         {/* Overview KPIs */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

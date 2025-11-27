@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "./utils";
 import { LayoutDashboard, ShoppingCart, Package, Warehouse, DollarSign, Factory, Menu, X, Lightbulb, FileText, Truck, GitBranch, PackageCheck, LayoutGrid, Shield, User, Settings } from "lucide-react";
 import GlobalSearch from "@/components/layout/GlobalSearch";
+import NotificationCenter from "@/components/notifications/NotificationCenter";
 import { cn } from "@/lib/utils";
 import { PermissionsProvider, usePermissions, ROLE_PERMISSIONS } from "@/components/auth/PermissionsContext";
 import { Badge } from "@/components/ui/badge";
@@ -122,8 +123,9 @@ function LayoutContent({ children, currentPageName }) {
           >
             <Menu className="h-6 w-6" />
           </button>
-          <div className="flex-1 flex justify-end">
+          <div className="flex-1 flex items-center justify-end gap-2">
             <GlobalSearch />
+            <NotificationCenter />
           </div>
         </header>
         <main className="flex-1 overflow-auto">{children}</main>
