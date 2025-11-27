@@ -11,6 +11,7 @@ import CrossModuleAnalytics from './pages/CrossModuleAnalytics';
 import Deliveries from './pages/Deliveries';
 import CustomDashboard from './pages/CustomDashboard';
 import UserRoleManagement from './pages/UserRoleManagement';
+import AdminManagement from './pages/AdminManagement';
 import __Layout from './Layout.jsx';
 
 
@@ -28,6 +29,7 @@ export const PAGES = {
     "Deliveries": Deliveries,
     "CustomDashboard": CustomDashboard,
     "UserRoleManagement": UserRoleManagement,
+    "AdminManagement": AdminManagement,
 }
 
 export const pagesConfig = {
