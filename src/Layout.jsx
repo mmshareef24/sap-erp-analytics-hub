@@ -20,7 +20,6 @@ const navItems = [
   { name: "Deliveries", icon: PackageCheck, page: "Deliveries" },
   { name: "Cross-Module", icon: GitBranch, page: "CrossModuleAnalytics" },
   { name: "Reports", icon: FileText, page: "Reports" },
-  { name: "User Roles", icon: Shield, page: "UserRoleManagement", adminOnly: true },
   { name: "Admin", icon: Settings, page: "AdminManagement", adminOnly: true },
 ];
 
