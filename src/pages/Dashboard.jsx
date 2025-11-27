@@ -1,4 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect, useCallback } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ShoppingCart, Package, FileText, Warehouse, DollarSign, Factory, Loader2 } from "lucide-react";
@@ -7,8 +8,47 @@ import SalesChart from "@/components/dashboard/SalesChart";
 import StatusPieChart from "@/components/dashboard/StatusPieChart";
 import DataTable from "@/components/dashboard/DataTable";
 import InventoryAlerts from "@/components/dashboard/InventoryAlerts";
+import SyncStatus from "@/components/dashboard/SyncStatus";
 
 export default function Dashboard() {
+  const queryClient = useQueryClient();
+  const [lastUpdated, setLastUpdated] = useState(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [syncInterval, setSyncInterval] = useState(() => {
+    const saved = localStorage.getItem("sapSyncInterval");
+    return saved ? JSON.parse(saved) : 300000; // Default 5 minutes
+  });
+
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    await queryClient.invalidateQueries();
+    setLastUpdated(new Date());
+    setIsRefreshing(false);
+  }, [queryClient]);
+
+  const handleIntervalChange = (interval) => {
+    setSyncInterval(interval);
+    localStorage.setItem("sapSyncInterval", JSON.stringify(interval));
+  };
+
+  // Auto-refresh effect
+  useEffect(() => {
+    if (!syncInterval) return;
+    
+    const intervalId = setInterval(() => {
+      handleRefresh();
+    }, syncInterval);
+
+    return () => clearInterval(intervalId);
+  }, [syncInterval, handleRefresh]);
+
+  // Set initial lastUpdated when data loads
+  useEffect(() => {
+    if (!lastUpdated) {
+      setLastUpdated(new Date());
+    }
+  }, []);
+
   const { data: salesOrders = [], isLoading: loadingSales } = useQuery({
     queryKey: ["salesOrders"],
     queryFn: () => base44.entities.SalesOrder.list()
@@ -61,9 +101,18 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">SAP Analytics Dashboard</h1>
-          <p className="text-muted-foreground mt-1">Real-time insights from your ERP system</p>
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">SAP Analytics Dashboard</h1>
+            <p className="text-muted-foreground mt-1">Real-time insights from your ERP system</p>
+          </div>
+          <SyncStatus 
+            onRefresh={handleRefresh}
+            isRefreshing={isRefreshing}
+            lastUpdated={lastUpdated}
+            syncInterval={syncInterval}
+            onIntervalChange={handleIntervalChange}
+          />
         </div>
 
         {/* Overview KPIs */}
