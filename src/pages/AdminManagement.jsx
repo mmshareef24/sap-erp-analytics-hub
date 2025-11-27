@@ -73,23 +73,7 @@ export default function AdminManagement() {
         </TabsContent>
 
         <TabsContent value="users" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" /> User Management
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground mb-4">
-                Manage user roles and permissions from the dedicated User Roles page.
-              </p>
-              <Link to={createPageUrl("UserRoleManagement")}>
-                <Button>
-                  <Shield className="h-4 w-4 mr-2" /> Go to User Roles
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
+          <UserRolesSection />
         </TabsContent>
 
         <TabsContent value="system" className="mt-6">

@@ -15,6 +15,7 @@ import {
   CheckCircle, XCircle, AlertCircle, Clock, Loader2, Plug
 } from "lucide-react";
 import { toast } from "sonner";
+import SapTableConfig from "./SapTableConfig";
 
 const DATA_SOURCE_TYPES = [
   { value: "sap_erp", label: "SAP ERP", icon: "🏢" },
@@ -45,7 +46,8 @@ export default function DataSourceManager() {
     username: "",
     sync_frequency: "manual",
     enabled: true,
-    tables_to_sync: []
+    tables_to_sync: [],
+    sap_tables: []
   });
   const [testingConnection, setTestingConnection] = useState(false);
 
@@ -94,7 +96,8 @@ export default function DataSourceManager() {
       username: "",
       sync_frequency: "manual",
       enabled: true,
-      tables_to_sync: []
+      tables_to_sync: [],
+      sap_tables: []
     });
   };
 
@@ -109,7 +112,8 @@ export default function DataSourceManager() {
       username: source.username || "",
       sync_frequency: source.sync_frequency || "manual",
       enabled: source.enabled !== false,
-      tables_to_sync: source.tables_to_sync || []
+      tables_to_sync: source.tables_to_sync || [],
+      sap_tables: source.sap_tables || []
     });
     setShowAddDialog(true);
   };
@@ -253,7 +257,7 @@ export default function DataSourceManager() {
 
       {/* Add/Edit Dialog */}
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className={formData.type === "sap_erp" ? "max-w-3xl max-h-[90vh] overflow-y-auto" : "max-w-lg"}>
           <DialogHeader>
             <DialogTitle>
               {editingSource ? "Edit Data Source" : "Add New Data Source"}
@@ -356,6 +360,16 @@ export default function DataSourceManager() {
                 </div>
               </div>
             </div>
+
+            {/* SAP Table Configuration - only show for SAP ERP */}
+            {formData.type === "sap_erp" && (
+              <div className="border-t pt-4">
+                <SapTableConfig 
+                  tables={formData.sap_tables} 
+                  onChange={(tables) => setFormData({ ...formData, sap_tables: tables })}
+                />
+              </div>
+            )}
 
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm">
               <p className="text-yellow-800">
