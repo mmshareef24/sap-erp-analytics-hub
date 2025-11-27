@@ -6,7 +6,8 @@ import GlobalSearch from "@/components/layout/GlobalSearch";
 const navItems = [
   { name: "Dashboard", icon: LayoutDashboard, page: "Dashboard" },
   { name: "Sales", icon: ShoppingCart, page: "Sales" },
-  { name: "Inventory", icon: Package, page: "Inventory" },
+  { name: "Purchase", icon: Package, page: "Purchase" },
+  { name: "Inventory", icon: Warehouse, page: "Inventory" },
   { name: "Finance", icon: DollarSign, page: "Finance" },
 ];
 

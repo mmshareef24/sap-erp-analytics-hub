@@ -2,6 +2,7 @@ import Dashboard from './pages/Dashboard';
 import Sales from './pages/Sales';
 import Inventory from './pages/Inventory';
 import Finance from './pages/Finance';
+import Purchase from './pages/Purchase';
 import __Layout from './Layout.jsx';
 
 
@@ -10,6 +11,7 @@ export const PAGES = {
     "Sales": Sales,
     "Inventory": Inventory,
     "Finance": Finance,
+    "Purchase": Purchase,
 }
 
 export const pagesConfig = {
