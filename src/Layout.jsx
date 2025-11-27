@@ -5,6 +5,7 @@ import { LayoutDashboard, ShoppingCart, Package, FileText, Warehouse, DollarSign
 const navItems = [
   { name: "Dashboard", icon: LayoutDashboard, page: "Dashboard" },
   { name: "Sales", icon: ShoppingCart, page: "Sales" },
+  { name: "Inventory", icon: Package, page: "Inventory" },
 ];
 
 export default function Layout({ children }) {
