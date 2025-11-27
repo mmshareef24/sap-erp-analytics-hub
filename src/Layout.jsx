@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "./utils";
-import { LayoutDashboard, ShoppingCart, Package, Warehouse, DollarSign, Factory, Menu, X, Lightbulb, FileText, Truck, GitBranch, PackageCheck, LayoutGrid, Shield, User } from "lucide-react";
+import { LayoutDashboard, ShoppingCart, Package, Warehouse, DollarSign, Factory, Menu, X, Lightbulb, FileText, Truck, GitBranch, PackageCheck, LayoutGrid, Shield, User, Settings } from "lucide-react";
 import GlobalSearch from "@/components/layout/GlobalSearch";
 import { cn } from "@/lib/utils";
 import { PermissionsProvider, usePermissions, ROLE_PERMISSIONS } from "@/components/auth/PermissionsContext";
@@ -21,6 +21,7 @@ const navItems = [
   { name: "Cross-Module", icon: GitBranch, page: "CrossModuleAnalytics" },
   { name: "Reports", icon: FileText, page: "Reports" },
   { name: "User Roles", icon: Shield, page: "UserRoleManagement", adminOnly: true },
+  { name: "Admin", icon: Settings, page: "AdminManagement", adminOnly: true },
 ];
 
 function LayoutContent({ children, currentPageName }) {
