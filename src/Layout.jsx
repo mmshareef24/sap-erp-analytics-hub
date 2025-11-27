@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "./utils";
-import { LayoutDashboard, ShoppingCart, Package, Warehouse, DollarSign, Factory, Menu, X, Lightbulb, FileText, Truck, GitBranch, PackageCheck, LayoutGrid } from "lucide-react";
+import { LayoutDashboard, ShoppingCart, Package, Warehouse, DollarSign, Factory, Menu, X, Lightbulb, FileText, Truck, GitBranch, PackageCheck, LayoutGrid, Shield, User } from "lucide-react";
 import GlobalSearch from "@/components/layout/GlobalSearch";
 import { cn } from "@/lib/utils";
+import { PermissionsProvider, usePermissions, ROLE_PERMISSIONS } from "@/components/auth/PermissionsContext";
+import { Badge } from "@/components/ui/badge";
 
 const navItems = [
   { name: "Dashboard", icon: LayoutDashboard, page: "Dashboard" },
@@ -20,8 +22,20 @@ const navItems = [
   { name: "Reports", icon: FileText, page: "Reports" },
 ];
 
-export default function Layout({ children, currentPageName }) {
+function LayoutContent({ children, currentPageName }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const { canAccessModule, role, user, loading } = usePermissions();
+
+  // Filter nav items based on permissions
+  const accessibleNavItems = navItems.filter(item => canAccessModule(item.page));
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 flex">
@@ -53,8 +67,27 @@ export default function Layout({ children, currentPageName }) {
             <X className="h-5 w-5" />
           </button>
         </div>
-        <nav className="flex-1 px-3 py-4 space-y-1">
-          {navItems.map((item) => {
+
+        {/* User Role Badge */}
+        {role && (
+          <div className="px-4 py-3 border-b">
+            <div className="flex items-center gap-2">
+              <div className="h-8 w-8 bg-gray-100 rounded-full flex items-center justify-center">
+                <User className="h-4 w-4 text-gray-600" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{user?.full_name || user?.email}</p>
+                <Badge variant="outline" className="text-xs mt-0.5">
+                  <Shield className="h-3 w-3 mr-1" />
+                  {role}
+                </Badge>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+          {accessibleNavItems.map((item) => {
             const isActive = currentPageName === item.page;
             return (
               <Link
@@ -92,5 +125,13 @@ export default function Layout({ children, currentPageName }) {
         <main className="flex-1 overflow-auto">{children}</main>
       </div>
     </div>
+  );
+}
+
+export default function Layout({ children, currentPageName }) {
+  return (
+    <PermissionsProvider>
+      <LayoutContent children={children} currentPageName={currentPageName} />
+    </PermissionsProvider>
   );
 }
