@@ -18,6 +18,7 @@ import InteractiveTrendChart from "@/components/charts/InteractiveTrendChart";
 import DrillDownPieChart from "@/components/charts/DrillDownPieChart";
 import DeliveryPerformanceReport from "@/components/deliveries/DeliveryPerformanceReport";
 import CarrierAnalysis from "@/components/deliveries/CarrierAnalysis";
+import AISummaryCard from "@/components/common/AISummaryCard";
 
 const statusColors = {
   "Pending": "bg-yellow-100 text-yellow-800",
@@ -142,6 +143,23 @@ export default function Deliveries() {
           <Download className="h-4 w-4 mr-2" /> Export CSV
         </Button>
       </div>
+
+      {/* AI Summary */}
+      <AISummaryCard 
+        title="Delivery Insights Summary"
+        promptTemplate={`Analyze this delivery data and provide a concise executive summary:
+
+Total Shipments: ${totalDeliveries}
+Delivered: ${delivered} (${((delivered / totalDeliveries) * 100).toFixed(1)}%)
+In Transit: ${inTransit}
+Delayed: ${delayed} (${((delayed / totalDeliveries) * 100).toFixed(1)}%)
+On-Time Rate: ${onTimeRate.toFixed(1)}%
+Total Freight Cost: SAR ${totalFreight.toLocaleString()}
+Average Freight: SAR ${avgFreight.toFixed(0)}
+Active Carriers: ${carriers.length}
+
+Provide: 1) A one-line headline summarizing performance, 2) 3 key metrics with trends, 3) Top 2-3 trends, 4) Any anomalies or concerns, 5) 2-3 actionable recommendations. Be concise.`}
+      />
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">

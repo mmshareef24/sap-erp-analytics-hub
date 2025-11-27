@@ -7,6 +7,7 @@ import { Loader2, GitBranch, BarChart3, Layers } from "lucide-react";
 import CorrelationBuilder from "@/components/crossmodule/CorrelationBuilder";
 import PrebuiltAnalytics from "@/components/crossmodule/PrebuiltAnalytics";
 import DataExplorer from "@/components/crossmodule/DataExplorer";
+import AISummaryCard from "@/components/common/AISummaryCard";
 
 export default function CrossModuleAnalytics() {
   const [activeTab, setActiveTab] = useState("prebuilt");
@@ -53,12 +54,34 @@ export default function CrossModuleAnalytics() {
     );
   }
 
+  // Calculate summary metrics for AI
+  const totalSalesRevenue = salesOrders.reduce((sum, o) => sum + (o.net_value || 0), 0);
+  const totalPOValue = purchaseOrders.reduce((sum, p) => sum + (p.net_value || 0), 0);
+  const inventoryValue = inventory.reduce((sum, i) => sum + (i.value || 0), 0);
+  const activeSuppliers = suppliers.filter(s => s.status === "Active").length;
+  const deliveredShipments = shipments.filter(s => s.status === "Delivered").length;
+  const completedProduction = productionOrders.filter(p => p.status === "Completed").length;
+
   return (
     <div className="p-6 space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Cross-Module Analytics</h1>
         <p className="text-muted-foreground">Analyze correlations and patterns across different business modules</p>
       </div>
+
+      {/* AI Cross-Module Summary */}
+      <AISummaryCard 
+        title="Cross-Module Intelligence Summary"
+        promptTemplate={`Analyze this cross-module business data and identify key patterns and correlations:
+
+SALES: ${salesOrders.length} orders worth SAR ${totalSalesRevenue.toLocaleString()}, ${salesInvoices.length} invoices
+PROCUREMENT: ${purchaseOrders.length} POs worth SAR ${totalPOValue.toLocaleString()}, ${activeSuppliers} active suppliers
+INVENTORY: ${inventory.length} SKUs valued at SAR ${inventoryValue.toLocaleString()}
+PRODUCTION: ${productionOrders.length} orders, ${completedProduction} completed
+LOGISTICS: ${shipments.length} shipments, ${deliveredShipments} delivered
+
+Provide: 1) A headline about overall business health, 2) 3-4 key cross-module metrics with trends, 3) Top correlations or patterns across modules, 4) Any anomalies requiring attention, 5) Strategic recommendations. Be concise and insightful.`}
+      />
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList>
