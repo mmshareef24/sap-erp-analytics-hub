@@ -6,6 +6,7 @@ import Purchase from './pages/Purchase';
 import Production from './pages/Production';
 import Insights from './pages/Insights';
 import Reports from './pages/Reports';
+import SupplyChain from './pages/SupplyChain';
 import __Layout from './Layout.jsx';
 
 
@@ -18,6 +19,7 @@ export const PAGES = {
     "Production": Production,
     "Insights": Insights,
     "Reports": Reports,
+    "SupplyChain": SupplyChain,
 }
 
 export const pagesConfig = {

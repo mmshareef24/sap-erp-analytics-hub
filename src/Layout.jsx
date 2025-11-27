@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "./utils";
-import { LayoutDashboard, ShoppingCart, Package, Warehouse, DollarSign, Factory, Menu, X, Lightbulb, FileText } from "lucide-react";
+import { LayoutDashboard, ShoppingCart, Package, Warehouse, DollarSign, Factory, Menu, X, Lightbulb, FileText, Truck } from "lucide-react";
 import GlobalSearch from "@/components/layout/GlobalSearch";
 import { cn } from "@/lib/utils";
 
@@ -13,6 +13,7 @@ const navItems = [
   { name: "Production", icon: Factory, page: "Production" },
   { name: "Finance", icon: DollarSign, page: "Finance" },
   { name: "Insights", icon: Lightbulb, page: "Insights" },
+  { name: "Supply Chain", icon: Truck, page: "SupplyChain" },
   { name: "Reports", icon: FileText, page: "Reports" },
 ];
 
