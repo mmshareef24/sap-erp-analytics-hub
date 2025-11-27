@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { base44 } from "@/api/base44Client";
+import SalesForecast from "./SalesForecast";
 
 const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899"];
 
@@ -285,6 +286,9 @@ Provide 3-4 specific, actionable recommendations to improve sales performance. B
           </CardContent>
         </Card>
       </div>
+
+      {/* Sales Forecast */}
+      <SalesForecast salesOrders={salesOrders} />
 
       {/* AI Insights */}
       <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-transparent">

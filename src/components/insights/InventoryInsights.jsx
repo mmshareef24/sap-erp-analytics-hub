@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { base44 } from "@/api/base44Client";
+import InventoryForecast from "./InventoryForecast";
 
 const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899"];
 
@@ -280,6 +281,9 @@ Provide 3-4 specific recommendations to optimize inventory levels, reduce carryi
           </CardContent>
         </Card>
       </div>
+
+      {/* Inventory Forecast */}
+      <InventoryForecast inventory={inventory} />
 
       {/* AI Insights */}
       <Card className="border-primary/20 bg-gradient-to-r from-cyan-500/5 to-transparent">
