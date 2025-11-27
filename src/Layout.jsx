@@ -20,14 +20,18 @@ const navItems = [
   { name: "Deliveries", icon: PackageCheck, page: "Deliveries" },
   { name: "Cross-Module", icon: GitBranch, page: "CrossModuleAnalytics" },
   { name: "Reports", icon: FileText, page: "Reports" },
+  { name: "User Roles", icon: Shield, page: "UserRoleManagement", adminOnly: true },
 ];
 
 function LayoutContent({ children, currentPageName }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const { canAccessModule, role, user, loading } = usePermissions();
+  const { canAccessModule, role, user, loading, isAdmin } = usePermissions();
 
   // Filter nav items based on permissions
-  const accessibleNavItems = navItems.filter(item => canAccessModule(item.page));
+  const accessibleNavItems = navItems.filter(item => {
+    if (item.adminOnly && !isAdmin()) return false;
+    return canAccessModule(item.page);
+  });
 
   if (loading) {
     return (
