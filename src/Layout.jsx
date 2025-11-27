@@ -60,8 +60,14 @@ function LayoutContent({ children, currentPageName }) {
       )}>
         <div className="flex items-center justify-between h-16 px-4 border-b">
           <div className="flex items-center">
-            <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center">
-              <LayoutDashboard className="h-5 w-5 text-white" />
+            <style>{`
+                          :root {
+                            --primary: 8 74% 34%;
+                            --primary-foreground: 0 0% 100%;
+                          }
+                        `}</style>
+                        <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center">
+                                <LayoutDashboard className="h-5 w-5 text-white" />
             </div>
             <span className="ml-2 text-lg font-bold text-gray-900">JASCO Analytics</span>
           </div>
