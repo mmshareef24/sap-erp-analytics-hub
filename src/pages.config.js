@@ -9,6 +9,7 @@ import Reports from './pages/Reports';
 import SupplyChain from './pages/SupplyChain';
 import CrossModuleAnalytics from './pages/CrossModuleAnalytics';
 import Deliveries from './pages/Deliveries';
+import CustomDashboard from './pages/CustomDashboard';
 import __Layout from './Layout.jsx';
 
 
@@ -24,6 +25,7 @@ export const PAGES = {
     "SupplyChain": SupplyChain,
     "CrossModuleAnalytics": CrossModuleAnalytics,
     "Deliveries": Deliveries,
+    "CustomDashboard": CustomDashboard,
 }
 
 export const pagesConfig = {

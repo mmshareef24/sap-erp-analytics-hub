@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "./utils";
-import { LayoutDashboard, ShoppingCart, Package, Warehouse, DollarSign, Factory, Menu, X, Lightbulb, FileText, Truck, GitBranch, PackageCheck } from "lucide-react";
+import { LayoutDashboard, ShoppingCart, Package, Warehouse, DollarSign, Factory, Menu, X, Lightbulb, FileText, Truck, GitBranch, PackageCheck, LayoutGrid } from "lucide-react";
 import GlobalSearch from "@/components/layout/GlobalSearch";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { name: "Dashboard", icon: LayoutDashboard, page: "Dashboard" },
+  { name: "My Dashboards", icon: LayoutGrid, page: "CustomDashboard" },
   { name: "Sales", icon: ShoppingCart, page: "Sales" },
   { name: "Purchase", icon: Package, page: "Purchase" },
   { name: "Inventory", icon: Warehouse, page: "Inventory" },
