@@ -109,8 +109,8 @@ export default function Dashboard() {
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">SAP Analytics Dashboard</h1>
-            <p className="text-muted-foreground mt-1">Real-time insights from your ERP system</p>
+            <h1 className="text-3xl font-bold text-gray-900">JASCO Analytics Dashboard</h1>
+            <p className="text-muted-foreground mt-1">Turning data into decisions.</p>
           </div>
           <SyncStatus 
             onRefresh={handleRefresh}

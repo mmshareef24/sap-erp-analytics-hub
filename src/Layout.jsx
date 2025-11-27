@@ -63,7 +63,7 @@ function LayoutContent({ children, currentPageName }) {
             <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center">
               <LayoutDashboard className="h-5 w-5 text-white" />
             </div>
-            <span className="ml-2 text-lg font-bold text-gray-900">SAP Analytics</span>
+            <span className="ml-2 text-lg font-bold text-gray-900">JASCO Analytics</span>
           </div>
           <button
             className="md:hidden text-gray-500 hover:text-gray-700"
