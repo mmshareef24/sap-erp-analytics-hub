@@ -4,7 +4,7 @@ import { base44 } from "@/api/base44Client";
 // Define permissions for each role
 const ROLE_PERMISSIONS = {
   "Admin": {
-    modules: ["Dashboard", "CustomDashboard", "Sales", "Purchase", "Inventory", "Production", "Finance", "Insights", "SupplyChain", "Deliveries", "CrossModuleAnalytics", "Reports", "UserRoleManagement", "AdminManagement"],
+    modules: ["Dashboard", "CustomDashboard", "Sales", "Purchase", "Inventory", "Production", "Finance", "Insights", "SupplyChain", "Deliveries", "CrossModuleAnalytics", "Reports", "AdminManagement"],
     actions: {
       sales: ["view", "create", "edit", "delete"],
       inventory: ["view", "create", "edit", "delete"],
