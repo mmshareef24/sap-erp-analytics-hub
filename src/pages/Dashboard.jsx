@@ -10,11 +10,13 @@ import DataTable from "@/components/dashboard/DataTable";
 import InventoryAlerts from "@/components/dashboard/InventoryAlerts";
 import SyncStatus from "@/components/dashboard/SyncStatus";
 import CrossModuleAlerts from "@/components/dashboard/CrossModuleAlerts";
+import DateFilter, { filterDataByDate } from "@/components/common/DateFilter";
 
 export default function Dashboard() {
   const queryClient = useQueryClient();
   const [lastUpdated, setLastUpdated] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [dateFilter, setDateFilter] = useState({ type: "all", startDate: null, endDate: null });
   const [syncInterval, setSyncInterval] = useState(() => {
     const saved = localStorage.getItem("sapSyncInterval");
     return saved ? JSON.parse(saved) : 300000; // Default 5 minutes
@@ -87,14 +89,22 @@ export default function Dashboard() {
 
   const isLoading = loadingSales || loadingPO || loadingInvoices || loadingInventory || loadingFinance || loadingProduction || loadingShipments;
 
-  // Calculate KPIs
-  const totalSalesValue = salesOrders.reduce((sum, o) => sum + (o.net_value || 0), 0);
-  const openSalesOrders = salesOrders.filter(o => o.status === "Open").length;
-  const totalPOValue = purchaseOrders.reduce((sum, o) => sum + (o.net_value || 0), 0);
-  const pendingInvoices = vendorInvoices.filter(i => i.status === "Posted").length;
+  // Apply date filter to all data
+  const filteredSalesOrders = filterDataByDate(salesOrders, dateFilter, "order_date");
+  const filteredPurchaseOrders = filterDataByDate(purchaseOrders, dateFilter, "po_date");
+  const filteredVendorInvoices = filterDataByDate(vendorInvoices, dateFilter, "invoice_date");
+  const filteredFinancialEntries = filterDataByDate(financialEntries, dateFilter, "posting_date");
+  const filteredProductionOrders = filterDataByDate(productionOrders, dateFilter, "start_date");
+  const filteredShipments = filterDataByDate(shipments, dateFilter, "ship_date");
+
+  // Calculate KPIs from filtered data
+  const totalSalesValue = filteredSalesOrders.reduce((sum, o) => sum + (o.net_value || 0), 0);
+  const openSalesOrders = filteredSalesOrders.filter(o => o.status === "Open").length;
+  const totalPOValue = filteredPurchaseOrders.reduce((sum, o) => sum + (o.net_value || 0), 0);
+  const pendingInvoices = filteredVendorInvoices.filter(i => i.status === "Posted").length;
   const totalInventoryValue = inventory.reduce((sum, i) => sum + (i.value || 0), 0);
-  const totalRevenue = financialEntries.filter(e => e.gl_account === "400000").reduce((sum, e) => sum + e.credit_amount, 0);
-  const activeProduction = productionOrders.filter(p => p.status === "In Process").length;
+  const totalRevenue = filteredFinancialEntries.filter(e => e.gl_account === "400000").reduce((sum, e) => sum + e.credit_amount, 0);
+  const activeProduction = filteredProductionOrders.filter(p => p.status === "In Process").length;
 
   if (isLoading) {
     return (
@@ -112,13 +122,16 @@ export default function Dashboard() {
             <h1 className="text-3xl font-bold text-gray-900">JASCO Analytics Dashboard</h1>
             <p className="text-muted-foreground italic mt-1">Turning data into decisions.</p>
           </div>
-          <SyncStatus 
-            onRefresh={handleRefresh}
-            isRefreshing={isRefreshing}
-            lastUpdated={lastUpdated}
-            syncInterval={syncInterval}
-            onIntervalChange={handleIntervalChange}
-          />
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <DateFilter onFilterChange={setDateFilter} />
+            <SyncStatus 
+              onRefresh={handleRefresh}
+              isRefreshing={isRefreshing}
+              lastUpdated={lastUpdated}
+              syncInterval={syncInterval}
+              onIntervalChange={handleIntervalChange}
+            />
+          </div>
         </div>
 
         {/* Cross-Module Alerts */}
@@ -136,21 +149,21 @@ export default function Dashboard() {
           <KPICard
             title="Total Sales Value"
             value={`SAR ${(totalSalesValue / 1000000).toFixed(2)}M`}
-            subtitle={`${salesOrders.length} orders`}
+            subtitle={`${filteredSalesOrders.length} orders`}
             icon={ShoppingCart}
             trend="up"
             trendValue="12% vs last month"
           />
           <KPICard
             title="Open Purchase Orders"
-            value={purchaseOrders.filter(p => p.status !== "Fully Received").length}
+            value={filteredPurchaseOrders.filter(p => p.status !== "Fully Received").length}
             subtitle={`SAR ${(totalPOValue / 1000000).toFixed(2)}M total`}
             icon={Package}
           />
           <KPICard
             title="Pending Invoices"
             value={pendingInvoices}
-            subtitle={`SAR ${(vendorInvoices.filter(i => i.status === "Posted").reduce((s, i) => s + i.gross_amount, 0) / 1000).toFixed(0)}K`}
+            subtitle={`SAR ${(filteredVendorInvoices.filter(i => i.status === "Posted").reduce((s, i) => s + i.gross_amount, 0) / 1000).toFixed(0)}K`}
             icon={FileText}
           />
           <KPICard
@@ -194,9 +207,9 @@ export default function Dashboard() {
           <TabsContent value="sales" className="space-y-4">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               <div className="lg:col-span-2">
-                <SalesChart data={salesOrders} />
+                <SalesChart data={filteredSalesOrders} />
               </div>
-              <StatusPieChart title="Sales Order Status" data={salesOrders} dataKey="status" />
+              <StatusPieChart title="Sales Order Status" data={filteredSalesOrders} dataKey="status" />
             </div>
             <DataTable
               title="Recent Sales Orders"
@@ -207,7 +220,7 @@ export default function Dashboard() {
                 { key: "net_value", label: "Value", format: (v) => `SAR ${v?.toLocaleString()}` },
                 { key: "status", label: "Status" }
               ]}
-              data={salesOrders}
+              data={filteredSalesOrders}
               maxRows={5}
             />
           </TabsContent>
@@ -216,11 +229,11 @@ export default function Dashboard() {
           <TabsContent value="purchase" className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <KPICard title="Total PO Value" value={`SAR ${(totalPOValue / 1000).toFixed(0)}K`} icon={Package} />
-              <KPICard title="Pending Approval" value={purchaseOrders.filter(p => p.status === "Created").length} />
-              <KPICard title="Awaiting Delivery" value={purchaseOrders.filter(p => p.status === "Approved").length} />
+              <KPICard title="Pending Approval" value={filteredPurchaseOrders.filter(p => p.status === "Created").length} />
+              <KPICard title="Awaiting Delivery" value={filteredPurchaseOrders.filter(p => p.status === "Approved").length} />
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <StatusPieChart title="PO Status Distribution" data={purchaseOrders} dataKey="status" />
+              <StatusPieChart title="PO Status Distribution" data={filteredPurchaseOrders} dataKey="status" />
               <DataTable
                 title="Recent Purchase Orders"
                 columns={[
@@ -229,7 +242,7 @@ export default function Dashboard() {
                   { key: "net_value", label: "Value", format: (v) => `SAR ${v?.toLocaleString()}` },
                   { key: "status", label: "Status" }
                 ]}
-                data={purchaseOrders}
+                data={filteredPurchaseOrders}
               />
             </div>
           </TabsContent>
@@ -260,8 +273,8 @@ export default function Dashboard() {
           <TabsContent value="finance" className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <KPICard title="Total Revenue" value={`SAR ${(totalRevenue / 1000).toFixed(0)}K`} icon={DollarSign} trend="up" />
-              <KPICard title="Vendor Payables" value={`SAR ${(financialEntries.filter(e => e.gl_account === "300000").reduce((s, e) => s + e.credit_amount, 0) / 1000).toFixed(0)}K`} />
-              <KPICard title="FI Documents" value={financialEntries.length} />
+              <KPICard title="Vendor Payables" value={`SAR ${(filteredFinancialEntries.filter(e => e.gl_account === "300000").reduce((s, e) => s + e.credit_amount, 0) / 1000).toFixed(0)}K`} />
+              <KPICard title="FI Documents" value={filteredFinancialEntries.length} />
             </div>
             <DataTable
               title="Recent Financial Entries"
@@ -272,7 +285,7 @@ export default function Dashboard() {
                 { key: "debit_amount", label: "Debit", format: (v) => v > 0 ? `SAR ${v?.toLocaleString()}` : "-" },
                 { key: "credit_amount", label: "Credit", format: (v) => v > 0 ? `SAR ${v?.toLocaleString()}` : "-" }
               ]}
-              data={financialEntries}
+              data={filteredFinancialEntries}
               maxRows={7}
             />
           </TabsContent>
@@ -281,11 +294,11 @@ export default function Dashboard() {
           <TabsContent value="production" className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <KPICard title="Active Orders" value={activeProduction} icon={Factory} />
-              <KPICard title="Completed" value={productionOrders.filter(p => p.status === "Completed").length} trend="up" />
-              <KPICard title="Pending Release" value={productionOrders.filter(p => p.status === "Created").length} />
+              <KPICard title="Completed" value={filteredProductionOrders.filter(p => p.status === "Completed").length} trend="up" />
+              <KPICard title="Pending Release" value={filteredProductionOrders.filter(p => p.status === "Created").length} />
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <StatusPieChart title="Production Status" data={productionOrders} dataKey="status" />
+              <StatusPieChart title="Production Status" data={filteredProductionOrders} dataKey="status" />
               <DataTable
                 title="Production Orders"
                 columns={[
@@ -295,7 +308,7 @@ export default function Dashboard() {
                   { key: "confirmed_quantity", label: "Actual" },
                   { key: "status", label: "Status" }
                 ]}
-                data={productionOrders}
+                data={filteredProductionOrders}
               />
             </div>
           </TabsContent>
@@ -303,12 +316,12 @@ export default function Dashboard() {
           {/* Invoices Tab */}
           <TabsContent value="invoices" className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <KPICard title="Total Invoices" value={vendorInvoices.length} icon={FileText} />
-              <KPICard title="Pending Payment" value={`SAR ${(vendorInvoices.filter(i => i.status === "Posted").reduce((s, i) => s + i.gross_amount, 0) / 1000).toFixed(0)}K`} />
-              <KPICard title="Blocked" value={vendorInvoices.filter(i => i.status === "Blocked").length} trend="down" />
+              <KPICard title="Total Invoices" value={filteredVendorInvoices.length} icon={FileText} />
+              <KPICard title="Pending Payment" value={`SAR ${(filteredVendorInvoices.filter(i => i.status === "Posted").reduce((s, i) => s + i.gross_amount, 0) / 1000).toFixed(0)}K`} />
+              <KPICard title="Blocked" value={filteredVendorInvoices.filter(i => i.status === "Blocked").length} trend="down" />
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <StatusPieChart title="Invoice Status" data={vendorInvoices} dataKey="status" />
+              <StatusPieChart title="Invoice Status" data={filteredVendorInvoices} dataKey="status" />
               <DataTable
                 title="Vendor Invoices"
                 columns={[
@@ -318,7 +331,7 @@ export default function Dashboard() {
                   { key: "due_date", label: "Due Date" },
                   { key: "status", label: "Status" }
                 ]}
-                data={vendorInvoices}
+                data={filteredVendorInvoices}
               />
             </div>
           </TabsContent>
