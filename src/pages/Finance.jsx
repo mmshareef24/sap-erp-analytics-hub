@@ -9,9 +9,11 @@ import GLAccountSummary from "@/components/finance/GLAccountSummary";
 import CostCenterAnalysis from "@/components/finance/CostCenterAnalysis";
 import ProfitLossReport from "@/components/finance/ProfitLossReport";
 import PayablesReceivables from "@/components/finance/PayablesReceivables";
+import DateFilter, { filterDataByDate } from "@/components/common/DateFilter";
 
 export default function Finance() {
   const [activeTab, setActiveTab] = useState("entries");
+  const [dateFilter, setDateFilter] = useState({ type: "all", startDate: null, endDate: null });
 
   const { data: financialEntries = [], isLoading: loadingEntries } = useQuery({
     queryKey: ["financialEntries"],
@@ -38,17 +40,25 @@ export default function Finance() {
     );
   }
 
-  const totalDebit = financialEntries.reduce((sum, e) => sum + (e.debit_amount || 0), 0);
-  const totalCredit = financialEntries.reduce((sum, e) => sum + (e.credit_amount || 0), 0);
-  const uniqueGLAccounts = new Set(financialEntries.map(e => e.gl_account)).size;
-  const uniqueCostCenters = new Set(financialEntries.map(e => e.cost_center).filter(Boolean)).size;
+  // Apply date filter
+  const filteredFinancialEntries = filterDataByDate(financialEntries, dateFilter, "posting_date");
+  const filteredVendorInvoices = filterDataByDate(vendorInvoices, dateFilter, "invoice_date");
+  const filteredSalesInvoices = filterDataByDate(salesInvoices, dateFilter, "invoice_date");
+
+  const totalDebit = filteredFinancialEntries.reduce((sum, e) => sum + (e.debit_amount || 0), 0);
+  const totalCredit = filteredFinancialEntries.reduce((sum, e) => sum + (e.credit_amount || 0), 0);
+  const uniqueGLAccounts = new Set(filteredFinancialEntries.map(e => e.gl_account)).size;
+  const uniqueCostCenters = new Set(filteredFinancialEntries.map(e => e.cost_center).filter(Boolean)).size;
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Finance Module</h1>
-          <p className="text-muted-foreground mt-1">Financial entries, G/L accounts, cost centers, and reports</p>
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Finance Module</h1>
+            <p className="text-muted-foreground mt-1">Financial entries, G/L accounts, cost centers, and reports</p>
+          </div>
+          <DateFilter onFilterChange={setDateFilter} />
         </div>
 
         {/* KPIs */}
@@ -56,7 +66,7 @@ export default function Finance() {
           <KPICard
             title="Total Debit"
             value={`SAR ${(totalDebit / 1000).toFixed(0)}K`}
-            subtitle={`${financialEntries.length} entries`}
+            subtitle={`${filteredFinancialEntries.length} entries`}
             icon={TrendingUp}
           />
           <KPICard
@@ -105,23 +115,23 @@ export default function Finance() {
           </TabsList>
 
           <TabsContent value="entries">
-            <FinancialEntriesList financialEntries={financialEntries} />
+            <FinancialEntriesList financialEntries={filteredFinancialEntries} />
           </TabsContent>
 
           <TabsContent value="gl-accounts">
-            <GLAccountSummary financialEntries={financialEntries} />
+            <GLAccountSummary financialEntries={filteredFinancialEntries} />
           </TabsContent>
 
           <TabsContent value="cost-centers">
-            <CostCenterAnalysis financialEntries={financialEntries} />
+            <CostCenterAnalysis financialEntries={filteredFinancialEntries} />
           </TabsContent>
 
           <TabsContent value="pnl">
-            <ProfitLossReport financialEntries={financialEntries} />
+            <ProfitLossReport financialEntries={filteredFinancialEntries} />
           </TabsContent>
 
           <TabsContent value="ap-ar">
-            <PayablesReceivables vendorInvoices={vendorInvoices} salesInvoices={salesInvoices} />
+            <PayablesReceivables vendorInvoices={filteredVendorInvoices} salesInvoices={filteredSalesInvoices} />
           </TabsContent>
         </Tabs>
       </div>

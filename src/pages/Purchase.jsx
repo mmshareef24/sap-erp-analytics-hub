@@ -9,9 +9,11 @@ import VendorInvoicesList from "@/components/purchase/VendorInvoicesList";
 import TopVendorsReport from "@/components/purchase/TopVendorsReport";
 import MaterialGroupAnalysis from "@/components/purchase/MaterialGroupAnalysis";
 import PurchaseTrendReport from "@/components/purchase/PurchaseTrendReport";
+import DateFilter, { filterDataByDate } from "@/components/common/DateFilter";
 
 export default function Purchase() {
   const [activeTab, setActiveTab] = useState("orders");
+  const [dateFilter, setDateFilter] = useState({ type: "all", startDate: null, endDate: null });
 
   const { data: purchaseOrders = [], isLoading: loadingPO } = useQuery({
     queryKey: ["purchaseOrders"],
@@ -33,17 +35,24 @@ export default function Purchase() {
     );
   }
 
-  const totalPOValue = purchaseOrders.reduce((sum, po) => sum + (po.net_value || 0), 0);
-  const openPOs = purchaseOrders.filter(po => po.status !== "Fully Received" && po.status !== "Cancelled").length;
-  const totalInvoiceValue = vendorInvoices.reduce((sum, inv) => sum + (inv.gross_amount || 0), 0);
-  const openInvoices = vendorInvoices.filter(inv => inv.status !== "Paid" && inv.status !== "Cancelled").length;
+  // Apply date filter
+  const filteredPurchaseOrders = filterDataByDate(purchaseOrders, dateFilter, "po_date");
+  const filteredVendorInvoices = filterDataByDate(vendorInvoices, dateFilter, "invoice_date");
+
+  const totalPOValue = filteredPurchaseOrders.reduce((sum, po) => sum + (po.net_value || 0), 0);
+  const openPOs = filteredPurchaseOrders.filter(po => po.status !== "Fully Received" && po.status !== "Cancelled").length;
+  const totalInvoiceValue = filteredVendorInvoices.reduce((sum, inv) => sum + (inv.gross_amount || 0), 0);
+  const openInvoices = filteredVendorInvoices.filter(inv => inv.status !== "Paid" && inv.status !== "Cancelled").length;
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Purchase Module</h1>
-          <p className="text-muted-foreground mt-1">Purchase orders, vendor invoices, and procurement analytics</p>
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Purchase Module</h1>
+            <p className="text-muted-foreground mt-1">Purchase orders, vendor invoices, and procurement analytics</p>
+          </div>
+          <DateFilter onFilterChange={setDateFilter} />
         </div>
 
         {/* KPIs */}
@@ -51,7 +60,7 @@ export default function Purchase() {
           <KPICard
             title="Total PO Value"
             value={`SAR ${(totalPOValue / 1000).toFixed(0)}K`}
-            subtitle={`${purchaseOrders.length} orders`}
+            subtitle={`${filteredPurchaseOrders.length} orders`}
             icon={Package}
           />
           <KPICard
@@ -63,7 +72,7 @@ export default function Purchase() {
           <KPICard
             title="Invoice Value"
             value={`SAR ${(totalInvoiceValue / 1000).toFixed(0)}K`}
-            subtitle={`${vendorInvoices.length} invoices`}
+            subtitle={`${filteredVendorInvoices.length} invoices`}
             icon={FileText}
           />
           <KPICard
@@ -100,23 +109,23 @@ export default function Purchase() {
           </TabsList>
 
           <TabsContent value="orders">
-            <PurchaseOrdersList purchaseOrders={purchaseOrders} />
+            <PurchaseOrdersList purchaseOrders={filteredPurchaseOrders} />
           </TabsContent>
 
           <TabsContent value="invoices">
-            <VendorInvoicesList vendorInvoices={vendorInvoices} />
+            <VendorInvoicesList vendorInvoices={filteredVendorInvoices} />
           </TabsContent>
 
           <TabsContent value="vendors">
-            <TopVendorsReport purchaseOrders={purchaseOrders} />
+            <TopVendorsReport purchaseOrders={filteredPurchaseOrders} />
           </TabsContent>
 
           <TabsContent value="materials">
-            <MaterialGroupAnalysis purchaseOrders={purchaseOrders} />
+            <MaterialGroupAnalysis purchaseOrders={filteredPurchaseOrders} />
           </TabsContent>
 
           <TabsContent value="trends">
-            <PurchaseTrendReport purchaseOrders={purchaseOrders} />
+            <PurchaseTrendReport purchaseOrders={filteredPurchaseOrders} />
           </TabsContent>
         </Tabs>
       </div>

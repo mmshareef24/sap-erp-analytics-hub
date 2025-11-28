@@ -9,9 +9,11 @@ import WorkCenterAnalysis from "@/components/production/WorkCenterAnalysis";
 import PlantAnalysis from "@/components/production/PlantAnalysis";
 import ProductionTrendReport from "@/components/production/ProductionTrendReport";
 import MaterialProductionReport from "@/components/production/MaterialProductionReport";
+import DateFilter, { filterDataByDate } from "@/components/common/DateFilter";
 
 export default function Production() {
   const [activeTab, setActiveTab] = useState("orders");
+  const [dateFilter, setDateFilter] = useState({ type: "all", startDate: null, endDate: null });
 
   const { data: productionOrders = [], isLoading } = useQuery({
     queryKey: ["productionOrders"],
@@ -26,19 +28,25 @@ export default function Production() {
     );
   }
 
-  const totalOrders = productionOrders.length;
-  const inProcess = productionOrders.filter(o => o.status === "In Process").length;
-  const completed = productionOrders.filter(o => o.status === "Completed" || o.status === "Closed").length;
-  const totalPlanned = productionOrders.reduce((sum, o) => sum + (o.planned_quantity || 0), 0);
-  const totalConfirmed = productionOrders.reduce((sum, o) => sum + (o.confirmed_quantity || 0), 0);
+  // Apply date filter
+  const filteredProductionOrders = filterDataByDate(productionOrders, dateFilter, "start_date");
+
+  const totalOrders = filteredProductionOrders.length;
+  const inProcess = filteredProductionOrders.filter(o => o.status === "In Process").length;
+  const completed = filteredProductionOrders.filter(o => o.status === "Completed" || o.status === "Closed").length;
+  const totalPlanned = filteredProductionOrders.reduce((sum, o) => sum + (o.planned_quantity || 0), 0);
+  const totalConfirmed = filteredProductionOrders.reduce((sum, o) => sum + (o.confirmed_quantity || 0), 0);
   const efficiency = totalPlanned > 0 ? ((totalConfirmed / totalPlanned) * 100).toFixed(1) : 0;
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Production Module</h1>
-          <p className="text-muted-foreground mt-1">Production orders, work centers, and manufacturing analytics</p>
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Production Module</h1>
+            <p className="text-muted-foreground mt-1">Production orders, work centers, and manufacturing analytics</p>
+          </div>
+          <DateFilter onFilterChange={setDateFilter} />
         </div>
 
         {/* KPIs */}
@@ -95,23 +103,23 @@ export default function Production() {
           </TabsList>
 
           <TabsContent value="orders">
-            <ProductionOrdersList productionOrders={productionOrders} />
+            <ProductionOrdersList productionOrders={filteredProductionOrders} />
           </TabsContent>
 
           <TabsContent value="work-centers">
-            <WorkCenterAnalysis productionOrders={productionOrders} />
+            <WorkCenterAnalysis productionOrders={filteredProductionOrders} />
           </TabsContent>
 
           <TabsContent value="plants">
-            <PlantAnalysis productionOrders={productionOrders} />
+            <PlantAnalysis productionOrders={filteredProductionOrders} />
           </TabsContent>
 
           <TabsContent value="materials">
-            <MaterialProductionReport productionOrders={productionOrders} />
+            <MaterialProductionReport productionOrders={filteredProductionOrders} />
           </TabsContent>
 
           <TabsContent value="trends">
-            <ProductionTrendReport productionOrders={productionOrders} />
+            <ProductionTrendReport productionOrders={filteredProductionOrders} />
           </TabsContent>
         </Tabs>
       </div>

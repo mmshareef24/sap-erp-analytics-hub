@@ -10,9 +10,11 @@ import StockTurnoverRate from "@/components/inventory/StockTurnoverRate";
 import TopValueItems from "@/components/inventory/TopValueItems";
 import LowStockAlerts from "@/components/inventory/LowStockAlerts";
 import InventoryOptimizationReport from "@/components/inventory/InventoryOptimizationReport";
+import DateFilter, { filterDataByDate } from "@/components/common/DateFilter";
 
 export default function Inventory() {
   const [activeTab, setActiveTab] = useState("overview");
+  const [dateFilter, setDateFilter] = useState({ type: "all", startDate: null, endDate: null });
 
   const { data: inventory = [], isLoading: l1 } = useQuery({
     queryKey: ["inventory"],
@@ -42,9 +44,12 @@ export default function Inventory() {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Inventory Management</h1>
-          <p className="text-muted-foreground mt-1">Monitor stock levels, valuations, and turnover rates</p>
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Inventory Management</h1>
+            <p className="text-muted-foreground mt-1">Monitor stock levels, valuations, and turnover rates</p>
+          </div>
+          <DateFilter onFilterChange={setDateFilter} />
         </div>
 
         {/* KPIs */}

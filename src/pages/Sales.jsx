@@ -12,9 +12,11 @@ import ItemsWiseReport from "@/components/sales/ItemsWiseReport";
 import SalesmanWiseReport from "@/components/sales/SalesmanWiseReport";
 import LocationWiseReport from "@/components/sales/LocationWiseReport";
 import MonthlyTrendReport from "@/components/sales/MonthlyTrendReport";
+import DateFilter, { filterDataByDate } from "@/components/common/DateFilter";
 
 export default function Sales() {
   const [activeTab, setActiveTab] = useState("orders");
+  const [dateFilter, setDateFilter] = useState({ type: "all", startDate: null, endDate: null });
 
   const { data: salesOrders = [], isLoading: loadingOrders } = useQuery({
     queryKey: ["salesOrders"],
@@ -33,10 +35,17 @@ export default function Sales() {
 
   const isLoading = loadingOrders || loadingItems || loadingInvoices;
 
-  const totalSalesValue = salesOrders.reduce((sum, o) => sum + (o.net_value || 0), 0);
-  const totalInvoiceValue = salesInvoices.reduce((sum, i) => sum + (i.gross_amount || 0), 0);
-  const openOrders = salesOrders.filter(o => o.status === "Open").length;
-  const openInvoices = salesInvoices.filter(i => i.status === "Open").length;
+  // Apply date filter
+  const filteredSalesOrders = filterDataByDate(salesOrders, dateFilter, "order_date");
+  const filteredSalesInvoices = filterDataByDate(salesInvoices, dateFilter, "invoice_date");
+  const filteredSalesOrderItems = salesOrderItems.filter(item => 
+    filteredSalesOrders.some(o => o.order_number === item.order_number)
+  );
+
+  const totalSalesValue = filteredSalesOrders.reduce((sum, o) => sum + (o.net_value || 0), 0);
+  const totalInvoiceValue = filteredSalesInvoices.reduce((sum, i) => sum + (i.gross_amount || 0), 0);
+  const openOrders = filteredSalesOrders.filter(o => o.status === "Open").length;
+  const openInvoices = filteredSalesInvoices.filter(i => i.status === "Open").length;
 
   if (isLoading) {
     return (
@@ -49,9 +58,12 @@ export default function Sales() {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Sales Module</h1>
-          <p className="text-muted-foreground mt-1">Manage orders, invoices, and analyze sales performance</p>
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Sales Module</h1>
+            <p className="text-muted-foreground mt-1">Manage orders, invoices, and analyze sales performance</p>
+          </div>
+          <DateFilter onFilterChange={setDateFilter} />
         </div>
 
         {/* Overview KPIs */}
@@ -59,7 +71,7 @@ export default function Sales() {
           <KPICard
             title="Total Sales Value"
             value={`SAR ${(totalSalesValue / 1000000).toFixed(2)}M`}
-            subtitle={`${salesOrders.length} orders`}
+            subtitle={`${filteredSalesOrders.length} orders`}
             icon={ShoppingCart}
           />
           <KPICard
@@ -71,7 +83,7 @@ export default function Sales() {
           <KPICard
             title="Invoice Value"
             value={`SAR ${(totalInvoiceValue / 1000000).toFixed(2)}M`}
-            subtitle={`${salesInvoices.length} invoices`}
+            subtitle={`${filteredSalesInvoices.length} invoices`}
             icon={FileText}
           />
           <KPICard
@@ -123,31 +135,31 @@ export default function Sales() {
           </TabsList>
 
           <TabsContent value="orders">
-            <SalesOrdersList salesOrders={salesOrders} salesOrderItems={salesOrderItems} />
+            <SalesOrdersList salesOrders={filteredSalesOrders} salesOrderItems={filteredSalesOrderItems} />
           </TabsContent>
 
           <TabsContent value="invoices">
-            <SalesInvoicesList salesInvoices={salesInvoices} />
+            <SalesInvoicesList salesInvoices={filteredSalesInvoices} />
           </TabsContent>
 
           <TabsContent value="top-customers">
-            <TopCustomersReport salesOrders={salesOrders} />
+            <TopCustomersReport salesOrders={filteredSalesOrders} />
           </TabsContent>
 
           <TabsContent value="items">
-            <ItemsWiseReport salesOrderItems={salesOrderItems} />
+            <ItemsWiseReport salesOrderItems={filteredSalesOrderItems} />
           </TabsContent>
 
           <TabsContent value="salesman">
-            <SalesmanWiseReport salesOrders={salesOrders} />
+            <SalesmanWiseReport salesOrders={filteredSalesOrders} />
           </TabsContent>
 
           <TabsContent value="location">
-            <LocationWiseReport salesOrders={salesOrders} />
+            <LocationWiseReport salesOrders={filteredSalesOrders} />
           </TabsContent>
 
           <TabsContent value="trends">
-            <MonthlyTrendReport salesOrders={salesOrders} />
+            <MonthlyTrendReport salesOrders={filteredSalesOrders} />
           </TabsContent>
         </Tabs>
       </div>
