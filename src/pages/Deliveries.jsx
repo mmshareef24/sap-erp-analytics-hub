@@ -19,6 +19,7 @@ import DrillDownPieChart from "@/components/charts/DrillDownPieChart";
 import DeliveryPerformanceReport from "@/components/deliveries/DeliveryPerformanceReport";
 import CarrierAnalysis from "@/components/deliveries/CarrierAnalysis";
 import AISummaryCard from "@/components/common/AISummaryCard";
+import DateFilter, { filterDataByDate } from "@/components/common/DateFilter";
 
 const statusColors = {
   "Pending": "bg-yellow-100 text-yellow-800",
@@ -33,6 +34,7 @@ export default function Deliveries() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
   const [carrierFilter, setCarrierFilter] = useState("all");
+  const [dateFilter, setDateFilter] = useState({ type: "all", startDate: null, endDate: null });
 
   const { data: shipments = [], isLoading } = useQuery({
     queryKey: ["deliveries"],
@@ -47,27 +49,29 @@ export default function Deliveries() {
     );
   }
 
-  // KPI Calculations
-  const totalDeliveries = shipments.length;
-  const delivered = shipments.filter(s => s.status === "Delivered").length;
-  const inTransit = shipments.filter(s => s.status === "In Transit").length;
-  const delayed = shipments.filter(s => s.status === "Delayed").length;
-  const pending = shipments.filter(s => s.status === "Pending").length;
+  // Apply date filter
+  const dateFilteredShipments = filterDataByDate(shipments, dateFilter, "ship_date");
 
-  const onTimeDeliveries = shipments.filter(s => 
+  // KPI Calculations
+  const delivered = dateFilteredShipments.filter(s => s.status === "Delivered").length;
+  const inTransit = dateFilteredShipments.filter(s => s.status === "In Transit").length;
+  const delayed = dateFilteredShipments.filter(s => s.status === "Delayed").length;
+  const pending = dateFilteredShipments.filter(s => s.status === "Pending").length;
+
+  const onTimeDeliveries = dateFilteredShipments.filter(s => 
     s.status === "Delivered" && s.actual_delivery && s.expected_delivery &&
     new Date(s.actual_delivery) <= new Date(s.expected_delivery)
   ).length;
   const onTimeRate = delivered > 0 ? (onTimeDeliveries / delivered * 100) : 0;
 
-  const totalFreight = shipments.reduce((sum, s) => sum + (s.freight_cost || 0), 0);
+  const totalFreight = dateFilteredShipments.reduce((sum, s) => sum + (s.freight_cost || 0), 0);
   const avgFreight = totalDeliveries > 0 ? totalFreight / totalDeliveries : 0;
 
   // Get unique carriers
-  const carriers = [...new Set(shipments.map(s => s.carrier).filter(Boolean))];
+  const carriers = [...new Set(dateFilteredShipments.map(s => s.carrier).filter(Boolean))];
 
   // Filtered shipments
-  const filteredShipments = shipments.filter(s => {
+  const filteredShipments = dateFilteredShipments.filter(s => {
     const matchesSearch = !search || 
       s.shipment_number?.toLowerCase().includes(search.toLowerCase()) ||
       s.origin?.toLowerCase().includes(search.toLowerCase()) ||
@@ -80,7 +84,7 @@ export default function Deliveries() {
   });
 
   // Monthly trend data
-  const monthlyTrend = shipments.reduce((acc, s) => {
+  const monthlyTrend = dateFilteredShipments.reduce((acc, s) => {
     const month = s.ship_date?.substring(0, 7) || "Unknown";
     if (!acc[month]) {
       acc[month] = { month, total: 0, delivered: 0, delayed: 0, freight: 0 };
@@ -134,14 +138,17 @@ export default function Deliveries() {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Deliveries Report</h1>
           <p className="text-muted-foreground">Complete delivery and shipment analytics</p>
         </div>
-        <Button onClick={exportCSV}>
-          <Download className="h-4 w-4 mr-2" /> Export CSV
-        </Button>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+          <DateFilter onFilterChange={setDateFilter} />
+          <Button onClick={exportCSV}>
+            <Download className="h-4 w-4 mr-2" /> Export CSV
+          </Button>
+        </div>
       </div>
 
       {/* AI Summary */}
@@ -239,7 +246,7 @@ Provide: 1) A one-line headline summarizing performance, 2) 3 key metrics with t
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {shipments.filter(s => s.status === "Delayed").slice(0, 5).map((s) => (
+                  {dateFilteredShipments.filter(s => s.status === "Delayed").slice(0, 5).map((s) => (
                     <div key={s.id} className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
                       <div>
                         <p className="font-medium">{s.shipment_number}</p>
@@ -265,11 +272,11 @@ Provide: 1) A one-line headline summarizing performance, 2) 3 key metrics with t
         </TabsContent>
 
         <TabsContent value="performance">
-          <DeliveryPerformanceReport shipments={shipments} />
+          <DeliveryPerformanceReport shipments={dateFilteredShipments} />
         </TabsContent>
 
         <TabsContent value="carriers">
-          <CarrierAnalysis shipments={shipments} />
+          <CarrierAnalysis shipments={dateFilteredShipments} />
         </TabsContent>
 
         <TabsContent value="details">

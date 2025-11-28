@@ -8,9 +8,11 @@ import ShipmentsModule from "@/components/supplychain/ShipmentsModule";
 import SuppliersModule from "@/components/supplychain/SuppliersModule";
 import LogisticsAnalytics from "@/components/supplychain/LogisticsAnalytics";
 import SupplyChainOverview from "@/components/supplychain/SupplyChainOverview";
+import DateFilter, { filterDataByDate } from "@/components/common/DateFilter";
 
 export default function SupplyChain() {
   const [activeTab, setActiveTab] = useState("overview");
+  const [dateFilter, setDateFilter] = useState({ type: "all", startDate: null, endDate: null });
 
   const { data: shipments = [], isLoading: loadingShipments } = useQuery({
     queryKey: ["shipments"],
@@ -42,11 +44,18 @@ export default function SupplyChain() {
     );
   }
 
+  // Apply date filter
+  const filteredShipments = filterDataByDate(shipments, dateFilter, "ship_date");
+  const filteredPurchaseOrders = filterDataByDate(purchaseOrders, dateFilter, "po_date");
+
   return (
     <div className="p-6 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Supply Chain Management</h1>
-        <p className="text-muted-foreground">Monitor shipments, suppliers, and logistics performance</p>
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Supply Chain Management</h1>
+          <p className="text-muted-foreground">Monitor shipments, suppliers, and logistics performance</p>
+        </div>
+        <DateFilter onFilterChange={setDateFilter} />
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -71,23 +80,23 @@ export default function SupplyChain() {
 
         <TabsContent value="overview">
           <SupplyChainOverview 
-            shipments={shipments} 
+            shipments={filteredShipments} 
             suppliers={suppliers} 
-            purchaseOrders={purchaseOrders}
+            purchaseOrders={filteredPurchaseOrders}
             inventory={inventory}
           />
         </TabsContent>
 
         <TabsContent value="shipments">
-          <ShipmentsModule shipments={shipments} />
+          <ShipmentsModule shipments={filteredShipments} />
         </TabsContent>
 
         <TabsContent value="suppliers">
-          <SuppliersModule suppliers={suppliers} purchaseOrders={purchaseOrders} />
+          <SuppliersModule suppliers={suppliers} purchaseOrders={filteredPurchaseOrders} />
         </TabsContent>
 
         <TabsContent value="analytics">
-          <LogisticsAnalytics shipments={shipments} suppliers={suppliers} purchaseOrders={purchaseOrders} />
+          <LogisticsAnalytics shipments={filteredShipments} suppliers={suppliers} purchaseOrders={filteredPurchaseOrders} />
         </TabsContent>
       </Tabs>
     </div>
