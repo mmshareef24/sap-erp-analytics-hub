@@ -12,6 +12,7 @@ const navItems = [
   { name: "Dashboard", icon: LayoutDashboard, page: "Dashboard" },
   { name: "My Dashboards", icon: LayoutGrid, page: "CustomDashboard" },
   { name: "Sales", icon: ShoppingCart, page: "Sales" },
+  { name: "Sales Invoices API", icon: FileText, page: "SalesInvoicesAPI" },
   { name: "Purchase", icon: Package, page: "Purchase" },
   { name: "Inventory", icon: Warehouse, page: "Inventory" },
   { name: "Production", icon: Factory, page: "Production" },
